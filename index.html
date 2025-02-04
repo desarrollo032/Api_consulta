@@ -40,8 +40,7 @@
 
         <div class="mb-3">
             <label class="form-label">Placa:</label>
-            <input type="text" id="placa" class="form-control" placeholder="Ingrese la placa"
-                oninput="consultarPlaca()">
+            <input type="text" id="placa" class="form-control" placeholder="Ingrese la placa">
         </div>
 
         <div class="mb-3">
@@ -53,13 +52,27 @@
             <label class="form-label">Color:</label>
             <input type="text" id="color" class="form-control" readonly>
         </div>
+
+        <div id="mensaje" class="alert alert-danger d-none"></div>
     </div>
 
     <script>
+        let debounceTimer;
+
+        document.getElementById("placa").addEventListener("input", () => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(consultarPlaca, 500);
+        });
+
         async function consultarPlaca() {
-            const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzODA4MSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6ImNvbnN1bHRvciJ9.Zl0dB-djOJmkeQ0KWJFbHmPI8p8xGa29MSannqEK4oM";
+            const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzODA4MSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6ImNvbnN1bHRvciJ9.Zl0dB-djOJmkeQ0KWJFbHmPI8p8xGa29MSannqEK4oM"; // ⚠️ Deberías obtener este token de forma segura
             const placa = document.getElementById("placa").value.toUpperCase().trim();
-            if (placa.length < 6) return; // Esperar mínimo 6 caracteres antes de buscar
+            const mensaje = document.getElementById("mensaje");
+
+            if (placa.length < 6) {
+                limpiarCampos();
+                return;
+            }
 
             const url = `https://api.factiliza.com/pe/v1/placa/info/${placa}`;
 
@@ -69,17 +82,25 @@
                     headers: { "Authorization": `Bearer ${token}` }
                 });
 
-                if (response.status === 200) {
+                if (response.ok) {
                     const data = await response.json();
-                    document.getElementById("marca").value = data.data.marca;
-                    document.getElementById("color").value = data.data.color;
+                    document.getElementById("marca").value = data.data.marca || "Desconocido";
+                    document.getElementById("color").value = data.data.color || "Desconocido";
+                    mensaje.classList.add("d-none"); // Ocultar mensaje de error si existía
                 } else {
-                    document.getElementById("marca").value = "";
-                    document.getElementById("color").value = "";
+                    throw new Error("No se encontró información para esta placa.");
                 }
             } catch (error) {
-                console.error("Error en la consulta:", error);
+                limpiarCampos();
+                mensaje.textContent = error.message;
+                mensaje.classList.remove("d-none");
             }
+        }
+
+        function limpiarCampos() {
+            document.getElementById("marca").value = "";
+            document.getElementById("color").value = "";
+            document.getElementById("mensaje").classList.add("d-none");
         }
     </script>
 
