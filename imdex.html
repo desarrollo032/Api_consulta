@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta de Placa</title>
+
+    <!-- Bootstrap 5 CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- jQuery CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .container {
+            max-width: 400px;
+            margin-top: 50px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        input {
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h4 class="text-center">Consultar Vehículo por Placa</h4>
+
+        <div class="mb-3">
+            <label class="form-label">Placa:</label>
+            <input type="text" id="placa" class="form-control" placeholder="Ingrese la placa"
+                oninput="consultarPlaca()">
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Marca:</label>
+            <input type="text" id="marca" class="form-control" readonly>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Color:</label>
+            <input type="text" id="color" class="form-control" readonly>
+        </div>
+    </div>
+
+    <script>
+        async function consultarPlaca() {
+            const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzODA4MSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6ImNvbnN1bHRvciJ9.Zl0dB-djOJmkeQ0KWJFbHmPI8p8xGa29MSannqEK4oM";
+            const placa = document.getElementById("placa").value.toUpperCase().trim();
+            if (placa.length < 6) return; // Esperar mínimo 6 caracteres antes de buscar
+
+            const url = `https://api.factiliza.com/pe/v1/placa/info/${placa}`;
+
+            try {
+                const response = await fetch(url, {
+                    method: "GET",
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+
+                if (response.status === 200) {
+                    const data = await response.json();
+                    document.getElementById("marca").value = data.data.marca;
+                    document.getElementById("color").value = data.data.color;
+                } else {
+                    document.getElementById("marca").value = "";
+                    document.getElementById("color").value = "";
+                }
+            } catch (error) {
+                console.error("Error en la consulta:", error);
+            }
+        }
+    </script>
+
+</body>
+
+</html>
